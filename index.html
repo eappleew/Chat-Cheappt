@@ -6,6 +6,12 @@
     <title>ChatCheappt</title>
     <link rel="icon" href="data:,"> 
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -422,7 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch(`/api/conversations/${conversationId}/messages`);
         const messages = await res.json();
 
-        messages.forEach(msg => appendMessage(msg.role, msg.content));
+        messages.forEach(msg => appendMessage(msg.role, msg.content, msg.cost, msg.model));
         
         // 사이드바 선택 효과 (간단히)
         loadConversations().then(() => {
@@ -576,7 +582,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById(loadingId).remove();
 
             if (res.ok) {
-                appendMessage('assistant', data.reply);
+                appendMessage('assistant', data.reply, data.cost, currentModel);
                 if (!currentConversationId) {
                     currentConversationId = data.conversationId;
                     loadConversations();
@@ -589,13 +595,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // 화면에 메시지 그리기 헬퍼 함수
-    // 화면에 메시지 그리기 헬퍼 함수 (수정됨: ID 중복 방지)
-    function appendMessage(role, text) {
-        // [수정] Date.now() 뒤에 랜덤 숫자를 붙여서 절대 안 겹치게 함
+    // [수정됨] 화면 그리기 함수 (modelName 인자 추가)
+    function appendMessage(role, text, cost = null, modelName = null) {
         const msgId = 'msg-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9);
-        
         const isUser = role === 'user';
+        let contentHtml = isUser ? text : marked.parse(text);
+
+        let costBadge = '';
+        if (role === 'assistant' && cost !== null) {
+            costBadge = `<div class="cost-badge"><span>💸 ${cost}원</span></div>`;
+        }
+
+        // [핵심] AI 이름 결정 로직
+        // 모델 이름이 있으면 그걸 쓰고, 없으면(옛날 데이터) 기본 이름 'ChatCheappt' 사용
+        // 예쁘게 보이려고 첫 글자 대문자로 변환 (선택사항)
+        let displayName = 'ChatCheappt';
+        if (!isUser && modelName) {
+            displayName = modelName.toUpperCase(); // 예: gpt-4o -> GPT-4O
+        } else if (isUser) {
+            displayName = '나';
+        }
+
         const html = `
             <div class="message" id="${msgId}">
                 <div class="message-avatar ${role}">
@@ -605,22 +625,27 @@ document.addEventListener('DOMContentLoaded', () => {
                         <circle cx="12" cy="7" r="4"></circle>
                     </svg>
                     ` : `
-                    <div class="logo-icon" style="font-size: 16px;">💬</div>
+                    <div class="logo-icon" style="font-size: 16px;">🤖</div>
                     `}
                 </div>
                 <div class="message-content">
-                    <div class="message-role">${isUser ? '나' : 'ChatCheappt'}</div>
-                    <div class="message-text">${text}</div>
+                    <div class="message-role">${displayName}</div> <div class="message-text markdown-body">${contentHtml}</div>
+                    ${costBadge}
                 </div>
             </div>
         `;
+        
         messagesList.insertAdjacentHTML('beforeend', html);
+        
+        const newMessage = document.getElementById(msgId);
+        newMessage.querySelectorAll('pre code').forEach((block) => {
+            hljs.highlightElement(block);
+        });
+
         messagesList.scrollTop = messagesList.scrollHeight;
         return msgId;
     }
-    // ... (기존 코드들) ...
 
-    // [NEW] 갤러리 기능 구현
     const galleryBtn = document.getElementById('galleryBtn');
     const galleryModal = document.getElementById('galleryModal');
     const closeGalleryBtn = document.getElementById('closeGalleryBtn');

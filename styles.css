@@ -631,3 +631,96 @@ body {
 .remove-image-btn:hover {
     background: #555;
 }
+
+/* styles.css 맨 아래 추가 */
+
+/* --- 마크다운 스타일 (AI 응답 예쁘게 만들기) --- */
+
+/* 1. 기본 텍스트 간격 */
+.markdown-body p {
+    margin-bottom: 12px;
+    line-height: 1.7;
+}
+.markdown-body p:last-child {
+    margin-bottom: 0;
+}
+
+/* 2. 코드 블록 (검은 박스) */
+.markdown-body pre {
+    background: #0d0d0d !important; /* 아주 어두운 배경 */
+    padding: 12px;
+    border-radius: 8px;
+    overflow-x: auto; /* 가로 스크롤 */
+    margin: 12px 0;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.markdown-body code {
+    font-family: 'Consolas', 'Monaco', monospace; /* 코딩 폰트 */
+    font-size: 14px;
+}
+
+/* 인라인 코드 (문장 중간에 있는 코드) */
+.markdown-body p code, 
+.markdown-body li code {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: #e2e8f0;
+}
+
+/* 3. 리스트 (글머리 기호) */
+.markdown-body ul, .markdown-body ol {
+    margin-left: 20px;
+    margin-bottom: 12px;
+}
+.markdown-body li {
+    margin-bottom: 4px;
+}
+
+/* 4. 제목 (h1, h2, h3...) */
+.markdown-body h1, .markdown-body h2, .markdown-body h3 {
+    margin-top: 24px;
+    margin-bottom: 12px;
+    font-weight: 600;
+    color: white;
+}
+.markdown-body h1 { font-size: 1.5em; border-bottom: 1px solid #444; padding-bottom: 0.3em; }
+.markdown-body h2 { font-size: 1.3em; }
+.markdown-body h3 { font-size: 1.1em; }
+
+/* 5. 표 (Table) */
+.markdown-body table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 12px 0;
+}
+.markdown-body th, .markdown-body td {
+    border: 1px solid #444;
+    padding: 8px 12px;
+    text-align: left;
+}
+.markdown-body th {
+    background-color: rgba(255,255,255,0.1);
+}
+
+/* 6. 인용문 (Blockquote) */
+.markdown-body blockquote {
+    border-left: 4px solid #4facfe;
+    margin: 12px 0;
+    padding-left: 16px;
+    color: #aaa;
+}
+
+/* styles.css 맨 아래 추가 */
+
+.cost-badge {
+    margin-top: 8px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.05);
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
