@@ -15,7 +15,7 @@ app.use(cors());
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: 'wowxc', // 본인 비밀번호 확인!
+    password: '1234', // 본인 비밀번호 확인!
     database: 'chatgpt_clone'
 });
 
@@ -100,22 +100,20 @@ app.post('/api/chat', async (req, res) => {
         );
 
         // DB 데이터를 OpenAI 형식으로 변환 ({ role: 'user', content: '...' })
+        // [수정됨] DB 기록 + 현재 질문을 합침 (중복 제거됨)
         const messagesForAI = [
-            systemMessage, // 1. 시스템 메시지 (가장 먼저!)
-            ...historyRows.map(row => ({ // 2. 과거 대화 기록
+            systemMessage, 
+            ...historyRows.map(row => ({ 
                 role: row.role,
                 content: row.content
             })),
-            { role: "user", content: message } // 3. 현재 질문
+            { role: "user", content: message } 
         ];
 
-        // 4. 과거 기록 끝에 '현재 질문' 추가
-        messagesForAI.push({ role: "user", content: message });
+        // ⚠️ 기존 코드에 있던 messagesForAI.push(...) 줄은 지워야 합니다!
+        // (위 배열 안에 이미 들어갔으므로 또 넣으면 안 됨)
 
-        // 5. DB에 현재 유저 메시지 저장
-        await db.promise().query('INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)', [currentConvId, 'user', message]);
-
-        // 6. OpenAI에게 '전체 대화(과거+현재)' 전송
+        // 6. OpenAI에게 전송
         const completion = await openai.chat.completions.create({
             model: selectedModel,
             messages: messagesForAI, 

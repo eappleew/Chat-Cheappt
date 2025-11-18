@@ -97,18 +97,54 @@
                             <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                     </button>
-                    <div id="modelMenu" class="model-menu hidden">
-                        <div class="model-option" data-value="gpt-4">
-                            <div class="model-name">GPT-4</div>
-                            <div class="model-desc">가장 똑똑함, 복잡한 작업용</div>
+                    <div id="modelMenu" class="model-menu hidden" style="max-height: 400px; overflow-y: auto;">
+    
+                        <div class="model-category" style="padding: 8px 12px 4px; font-size: 11px; color: #888; font-weight: bold; border-bottom: 1px solid #444;">최신 (Next Gen)</div>
+                        <div class="model-option" data-value="gpt-5.1">
+                            <div class="model-name">GPT-5.1</div>
+                            <div class="model-desc">2025 최신 모델 (최고 성능)</div>
                         </div>
+                        <div class="model-option" data-value="gpt-5">
+                            <div class="model-name">GPT-5</div>
+                            <div class="model-desc">강력한 성능 및 추론 능력</div>
+                        </div>
+                        <div class="model-option" data-value="gpt-5-mini">
+                            <div class="model-name">GPT-5 Mini</div>
+                            <div class="model-desc">GPT-5의 경량화 버전</div>
+                        </div>
+
+                        <div class="model-category" style="padding: 8px 12px 4px; font-size: 11px; color: #888; font-weight: bold; border-bottom: 1px solid #444;">옴니 (Omni)</div>
                         <div class="model-option" data-value="gpt-4o">
                             <div class="model-name">GPT-4o</div>
-                            <div class="model-desc">최신 모델, 빠르고 똑똑함</div>
+                            <div class="model-desc">가장 똑똑하고 빠름 (추천)</div>
+                        </div>
+                        <div class="model-option" data-value="gpt-4o-mini">
+                            <div class="model-name">GPT-4o Mini</div>
+                            <div class="model-desc">속도 빠르고 매우 저렴함</div>
+                        </div>
+
+                        <div class="model-category" style="padding: 8px 12px 4px; font-size: 11px; color: #888; font-weight: bold; border-bottom: 1px solid #444;">추론 (Reasoning)</div>
+                        <div class="model-option" data-value="o1">
+                            <div class="model-name">OpenAI o1</div>
+                            <div class="model-desc">복잡한 수학/코딩/과학 해결</div>
+                        </div>
+                        <div class="model-option" data-value="o1-mini">
+                            <div class="model-name">OpenAI o1-mini</div>
+                            <div class="model-desc">빠른 추론 모델</div>
+                        </div>
+
+                        <div class="model-category" style="padding: 8px 12px 4px; font-size: 11px; color: #888; font-weight: bold; border-bottom: 1px solid #444;">기존 모델 (Legacy)</div>
+                        <div class="model-option" data-value="gpt-4-turbo">
+                            <div class="model-name">GPT-4 Turbo</div>
+                            <div class="model-desc">GPT-4 완성형</div>
+                        </div>
+                        <div class="model-option" data-value="gpt-4">
+                            <div class="model-name">GPT-4</div>
+                            <div class="model-desc">오리지널 GPT-4</div>
                         </div>
                         <div class="model-option" data-value="gpt-3.5-turbo">
                             <div class="model-name">GPT-3.5 Turbo</div>
-                            <div class="model-desc">엄청 빠름, 간단한 대화용</div>
+                            <div class="model-desc">빠르고 가벼운 구버전</div>
                         </div>
                     </div>
                 </div>
