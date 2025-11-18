@@ -47,7 +47,7 @@ app.post('/api/login', (req, res) => {
     });
 });
 
-// 3. [NEW] 대화 목록 가져오기
+// 3. 대화 목록 가져오기
 app.get('/api/conversations/:userId', (req, res) => {
     const sql = 'SELECT * FROM conversations WHERE user_id = ? ORDER BY created_at DESC';
     db.query(sql, [req.params.userId], (err, results) => {
@@ -56,7 +56,7 @@ app.get('/api/conversations/:userId', (req, res) => {
     });
 });
 
-// 4. [NEW] 특정 대화의 메시지 내역 가져오기
+// 4. 특정 대화의 메시지 내역 가져오기
 app.get('/api/conversations/:conversationId/messages', (req, res) => {
     const sql = 'SELECT * FROM messages WHERE conversation_id = ? ORDER BY created_at ASC';
     db.query(sql, [req.params.conversationId], (err, results) => {
@@ -65,14 +65,13 @@ app.get('/api/conversations/:conversationId/messages', (req, res) => {
     });
 });
 
-// 5. [UPDATE] 채팅하기 (기억력 장착 완료 🧠)
+
+// 5. [UPDATE] 채팅하기 (완벽 수정됨 🌟)
 app.post('/api/chat', async (req, res) => {
     const { userId, message, conversationId, model } = req.body;
     const selectedModel = model || "gpt-4o";
-    const systemMessage = {
-            role: "system",
-            content: `You are a helpful assistant. You are currently using the model: ${selectedModel}. If asked about your model version, please answer that you are ${selectedModel}.`
-        };
+    
+    let currentConvId = conversationId;
 
     try {
         // 1. API Key 조회
@@ -82,72 +81,92 @@ app.post('/api/chat', async (req, res) => {
         const apiKey = userRows[0].api_key;
         const openai = new OpenAI({ apiKey });
 
-        let currentConvId = conversationId;
-
-        // 2. 대화방이 없으면 새로 생성
+        // 2. 대화방 없으면 생성
         if (!currentConvId) {
             const title = message.substring(0, 20);
             const [convResult] = await db.promise().query('INSERT INTO conversations (user_id, title) VALUES (?, ?)', [userId, title]);
             currentConvId = convResult.insertId;
         }
 
-        // ============================================================
-        // 3. [핵심] 이전 대화 기록 불러오기 (기억력의 핵심!)
-        // ============================================================
-        const [historyRows] = await db.promise().query(
-            'SELECT role, content FROM messages WHERE conversation_id = ? ORDER BY created_at ASC', 
-            [currentConvId]
-        );
+        // 3. 유저 질문 저장
+        await db.promise().query('INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)', [currentConvId, 'user', message]);
 
-        // DB 데이터를 OpenAI 형식으로 변환 ({ role: 'user', content: '...' })
-        // [수정됨] DB 기록 + 현재 질문을 합침 (중복 제거됨)
-        const messagesForAI = [
-            systemMessage, 
-            ...historyRows.map(row => ({ 
-                role: row.role,
-                content: row.content
-            })),
-            { role: "user", content: message } 
-        ];
+        let reply = "";
 
-        // ⚠️ 기존 코드에 있던 messagesForAI.push(...) 줄은 지워야 합니다!
-        // (위 배열 안에 이미 들어갔으므로 또 넣으면 안 됨)
+        // ====================================================
+        // 4. 모델에 따른 분기 처리 (이미지 vs 텍스트)
+        // ====================================================
+        if (selectedModel === 'dall-e-3') {
+            // [A] 이미지 생성 모드
+            try {
+                const imageResponse = await openai.images.generate({
+                    model: "dall-e-3",
+                    prompt: message,
+                    n: 1,
+                    size: "1024x1024",
+                });
+                
+                const imageUrl = imageResponse.data[0].url;
+                
+                // 프론트엔드에서 바로 보이게 HTML 태그로 저장
+                reply = `<img src="${imageUrl}" alt="Generated Image" style="max-width: 100%; border-radius: 10px; margin-top: 10px;">`;
+                
+            } catch (imgError) {
+                console.error("DALL-E Error:", imgError);
+                reply = "이미지 생성 중 오류가 발생했습니다. (API 키 권한이나 크레딧을 확인하세요)";
+            }
 
-        // 6. OpenAI에게 전송
-        const completion = await openai.chat.completions.create({
-            model: selectedModel,
-            messages: messagesForAI, 
-        });
+        } else {
+            // [B] 일반 채팅 모드 (기존 로직)
+            const systemMessage = {
+                role: "system",
+                content: `You are a helpful assistant. You are currently using the model: ${selectedModel}.`
+            };
 
-        const reply = completion.choices[0].message.content;
+            // 이전 대화 기록 불러오기
+            const [historyRows] = await db.promise().query(
+                'SELECT role, content FROM messages WHERE conversation_id = ? ORDER BY created_at ASC', 
+                [currentConvId]
+            );
 
-        // 7. AI 응답 DB 저장
+            const messagesForAI = [
+                systemMessage, 
+                ...historyRows.map(row => ({ 
+                    role: row.role,
+                    content: row.content
+                })),
+                { role: "user", content: message } 
+            ];
+
+            const completion = await openai.chat.completions.create({
+                model: selectedModel,
+                messages: messagesForAI, 
+            });
+
+            reply = completion.choices[0].message.content;
+        }
+
+        // 5. AI 응답(또는 이미지 태그) DB 저장
         await db.promise().query('INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)', [currentConvId, 'assistant', reply]);
 
         res.json({ reply, conversationId: currentConvId });
 
     } catch (error) {
         console.error('에러 발생:', error);
-        res.status(500).json({ error: '서버 또는 OpenAI API 오류 발생' });
+        res.status(500).json({ error: '서버 에러: ' + error.message });
     }
 });
 
 app.delete('/api/conversations/:id', (req, res) => {
     const conversationId = req.params.id;
 
-    // 1. 메시지 먼저 삭제 (안 그러면 에러남)
+    // 1. 메시지 먼저 삭제
     db.query('DELETE FROM messages WHERE conversation_id = ?', [conversationId], (err) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ error: '메시지 삭제 실패' });
-        }
+        if (err) return res.status(500).json({ error: '메시지 삭제 실패' });
 
         // 2. 대화방 삭제
         db.query('DELETE FROM conversations WHERE id = ?', [conversationId], (err) => {
-            if (err) {
-                console.error(err);
-                return res.status(500).json({ error: '대화방 삭제 실패' });
-            }
+            if (err) return res.status(500).json({ error: '대화방 삭제 실패' });
             res.json({ message: '삭제 성공' });
         });
     });
