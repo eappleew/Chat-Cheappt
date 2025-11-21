@@ -477,14 +477,18 @@ body {
     color: rgba(255,255,255,0.5);
 }
 
-/* 갤러리 스타일 */
 .gallery-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 16px;
+    
+    /* [수정됨] 가로는 16px 유지, 세로는 32px로 2배 늘림 */
+    column-gap: 16px; 
+    row-gap: 32px; 
+    
     overflow-y: auto;
     flex: 1;
     padding-right: 8px;
+    padding-bottom: 40px; /* 맨 밑바닥 공간도 좀 넉넉하게 추가 */
 }
 
 .gallery-item {
