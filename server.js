@@ -122,7 +122,6 @@ app.post('/api/chat', async (req, res) => {
         const savedContent = image ? `[이미지 첨부됨] ${message}` : message;
         await db.promise().query('INSERT INTO messages (conversation_id, role, content) VALUES (?, ?, ?)', [currentConvId, 'user', savedContent]);
 
-        // [중요] 변수 초기화 (여기서 미리 만들어둬야 에러가 안 남!)
         let reply = "";
         let usageData = { prompt_tokens: 0, completion_tokens: 0 };
         let totalCost = 0;
@@ -158,7 +157,6 @@ app.post('/api/chat', async (req, res) => {
         else {
             // [수정됨] 프론트에서 보낸 설정이 있으면 적용, 없으면 기본값
             const customSystemPrompt = req.body.systemInstruction;
-            console.log("👉 적용된 페르소나:", customSystemPrompt || "기본 설정");
             const defaultSystemPrompt = `You are a helpful assistant. Model: ${selectedModel}.`;
             
             const systemMessage = { 
@@ -284,6 +282,7 @@ app.get('/api/user/:id/usage', async (req, res) => {
         res.status(500).json({ error: 'DB Error' });
     }
 });
+
 // 2. 회원정보 수정 (프로필 사진, 비번, 이름)
 app.post('/api/user/update', async (req, res) => {
     const { userId, name, password, profileImageBase64 } = req.body;
