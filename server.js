@@ -38,7 +38,10 @@ app.use(express.static(path.join(__dirname, '.')));
    MySQL 연결 (Railway)
 ========================= */
 
-const db = mysql.createConnection(process.env.DATABASE_URL);
+const db = mysql.createConnection({
+    uri: process.env.DATABASE_URL
+});
+
 
 
 db.connect(err => {
