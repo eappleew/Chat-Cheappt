@@ -197,3 +197,12 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`🚀 서버 실행 중: ${PORT}`);
 });
+
+db.query(sql, [name, email, hashedPassword, apiKey], err => {
+    if (err) {
+        console.error('회원가입 DB 에러:', err);
+        return res.status(500).json({ message: '회원가입 실패' });
+    }
+    res.status(201).json({ message: '가입 성공' });
+});
+
